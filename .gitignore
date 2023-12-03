@@ -1,2 +1,4 @@
 # for ignoring the test inputs
 *.txt
+# for ignoring Java class files
+*.class
