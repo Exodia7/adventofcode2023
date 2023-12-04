@@ -1,8 +1,8 @@
-public class Number {
+public class NumberPart1 {
     private boolean isPartNumber;
     private int value;
     
-    public Number(int value, boolean isPartNumber) {
+    public NumberPart1(int value, boolean isPartNumber) {
         this.value = value;
         this.isPartNumber = isPartNumber;
     }

@@ -24,9 +24,9 @@ public class Day03 {
             
             // then, compute the sum of all the part numbers
             int partNumSum = 0;
-            Iterator<Number> iter = schema.iterator();
+            Iterator<NumberPart1> iter = schema.iterator();
             while (iter.hasNext()) {
-                Number nextNum = iter.next();
+                NumberPart1 nextNum = iter.next();
                 
                 if (nextNum.isPartNumber()) {
                     partNumSum += nextNum.getValue();

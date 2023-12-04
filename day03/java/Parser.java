@@ -43,7 +43,7 @@ public class Parser {
                     }
                     
                     // create the number and add it to the Schematic
-                    Number n = new Number(numValue, isPartNumber);
+                    NumberPart1 n = new NumberPart1(numValue, isPartNumber);
                     schema.addNumber(n);
                     
                     // finally, increase j to past this number
