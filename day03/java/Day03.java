@@ -20,7 +20,7 @@ public class Day03 {
         
             // parse it to a Schematic
             Parser parser = new Parser();
-            Schematic schema = parser.part1Parse(lines);
+            SchematicPart1 schema = parser.part1Parse(lines);
             
             // then, compute the sum of all the part numbers
             int partNumSum = 0;
@@ -28,14 +28,8 @@ public class Day03 {
             while (iter.hasNext()) {
                 Number nextNum = iter.next();
                 
-                System.out.print("Found number with value " + nextNum.getValue() + " who is");
-                
                 if (nextNum.isPartNumber()) {
-                    System.out.println(" a part number!");
                     partNumSum += nextNum.getValue();
-                }
-                else {
-                    System.out.println(" NOT a part number");
                 }
             }
             

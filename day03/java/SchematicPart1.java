@@ -2,14 +2,14 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class Schematic {
+public class SchematicPart1 {
     private List<Number> numbers;
     
-    public Schematic() {
+    public SchematicPart1() {
         numbers = new ArrayList<Number>();
     }
     
-    public Schematic(List<Number> numbers) {
+    public SchematicPart1(List<Number> numbers) {
         this.numbers = numbers;
     }
     

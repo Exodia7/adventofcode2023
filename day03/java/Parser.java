@@ -4,8 +4,8 @@ public class Parser {
     public Parser() {
     }
     
-    public Schematic part1Parse(List<String> input) {
-        Schematic schema = new Schematic();
+    public SchematicPart1 part1Parse(List<String> input) {
+        SchematicPart1 schema = new SchematicPart1();
         
         // iterate over the lines
         for (int i=0; i < input.size(); i ++) {
@@ -21,9 +21,6 @@ public class Parser {
                     }
                     // cast the number to int
                     int numValue = Integer.parseInt(line.substring(j, endOfNumber+1));
-                    
-                    // DEBUG
-                    System.out.println("Found number with value " + numValue + " at index i=" + i + ", j=" + j);
                     
                     // now, check if there is a special symbol around it
                     boolean isPartNumber = false;
@@ -43,14 +40,6 @@ public class Parser {
                         }
                         
                         i2 ++;
-                    }
-                    
-                    // DEBUG
-                    if (isPartNumber) {
-                        System.out.println("Number is a part number!");
-                    }
-                    else {
-                        System.out.println("Number is NOT a part number!");
                     }
                     
                     // create the number and add it to the Schematic
