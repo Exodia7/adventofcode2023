@@ -37,15 +37,10 @@ def patternScore(hand):
     valueCounts = frequencyCount(hand)
     valueCountsNoJokers = {key: valueCounts[key] for key in valueCounts.keys() if key != 'J'}
     
-    # now compute the highest frequency
+    # now compute the highest frequency with usage of the jokers
     numJokers = valueCounts["J"] if "J" in valueCounts.keys() else 0
-    highestFreq = max(valueCounts.values())
-    aidedHighestFreq = highestFreq
-    if highestFreq != 5:
-        # 1) compute the highest frequency counts without jokers
-        highestFreqNoJokers = max(valueCountsNoJokers.values())
-        # 2) do the sum of the highest frequency count without jokers and the number of jokers
-        aidedHighestFreq = highestFreqNoJokers + numJokers
+    highestFreqNoJokers = 0 if len(valueCountsNoJokers.values()) == 0 else max(valueCountsNoJokers.values())
+    aidedHighestFreq = highestFreqNoJokers + numJokers
     
     if aidedHighestFreq == 5:
         return PATTERN_VALUES["5 of a kind"]
@@ -95,6 +90,7 @@ def valueScore(value):
         else:
             raise ValueError("All values should be characters from 2-9 or one of the letters T, J, Q, K, A")
 
+# FUNCTION FOR ALTERNATIVE 1:
 def handScore(hand):
     """ Computes the total score of a certain hand.
         The primary valuation factor is the pattern,
@@ -109,6 +105,7 @@ def handScore(hand):
         total += valueScore(value)
     return total
 
+# FUNCTION FOR ALTERNATIVE 2:
 def compareHands(hand1, hand2):
     """ Compares the two hands and gives an integer as result:
         - if hand1 is more valuable than hand2, it returns a positive score
@@ -139,9 +136,9 @@ with open(INPUT_FILE, 'r') as f:
     
     # sort based on their strength
     # ALTERNATIVE 1: give an individual score to each entry
-    sortedData1 = sorted(data, key=(lambda entry: handScore(entry[0])))
+    data = sorted(data, key=(lambda entry: handScore(entry[0])))
     # ALTERNATIVE 2: use a compare function
-    sortedData2 = sorted(data, key=cmp_to_key(lambda item1, item2: compareHands(item1[0], item2[0])))
+    #data = sorted(data, key=cmp_to_key(lambda item1, item2: compareHands(item1[0], item2[0])))
     
     # then return the winnings by multiplying the ranks (indices + 1) times the bid
     totalWinnings = 0
