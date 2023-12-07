@@ -1,6 +1,4 @@
 
-from functools import cmp_to_key
-
 INPUT_FILE = "input.txt"
 PATTERN_VALUES = {
     "5 of a kind": 7,
