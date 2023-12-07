@@ -1,6 +1,5 @@
 
 from functools import cmp_to_key
-from pprint import PrettyPrinter
 
 INPUT_FILE = "input.txt"
 
@@ -69,7 +68,6 @@ def patternScore(hand):
     else:
         return PATTERN_VALUES["high card"]
 
-
 def valueScore(value):
     """ Returns the score of the given value, 
         which are scored as follows:
@@ -110,49 +108,20 @@ def handScore(hand):
         # and add that score
         total += valueScore(value)
     return total
-"""
+
 def compareHands(hand1, hand2):
-    # get the frequency count for both hands
-    freqCounts1 = frequencyCount(hand1)
-    freqCounts2 = frequencyCount(hand2)
-    '''
-    print("DEBUG - ")
-    print(f"Frequency counts hand1 = {freqCounts1}")
-    print(f"Frequency counts hand2 = {freqCounts2}")
-    '''
-    # get the count of 'J's in each hand
-    numJokers1 = freqCounts1["J"] if "J" in freqCounts1.keys() else 0
-    numJokers2 = freqCounts2["J"] if "J" in freqCounts2.keys() else 0
-    # then compare the highest frequency counts
-    highestFreq1 = max(freqCounts1.values())
-    highestFreq2 = max(freqCounts2.values())
-    # "aided" highest frequency (taking jokers into account)
-    aidedHighestFreq1 = highestFreq1
-    if highestFreq1 != 5:
-        # 1) compute the highest frequency counts without jokers
-        highestFreq1NoJokers = max([freqCounts1[key] for key in freqCounts1.keys() if key != "J"])
-        # 2) do the sum of the highest frequency count without jokers and the number of jokers
-        aidedHighestFreq1 = highestFreq1NoJokers + numJokers1
-    aidedHighestFreq2 = highestFreq2
-    if highestFreq2 != 5:
-        # 1) compute the highest frequency counts without jokers
-        highestFreq2NoJokers = max([freqCounts2[key] for key in freqCounts2.keys() if key != "J"])
-        # 2) do the sum of the highest frequency count without jokers and the number of jokers
-        aidedHighestFreq2 = highestFreq2NoJokers + numJokers2
-    '''
-    print("DEBUG - ")
-    print("- stats for hand1: ")
-    print(f"    highestFreq={highestFreq1}")
-    print(f"    numJokers={numJokers1}")
-    print(f"    aidedHighestFreq={aidedHighestFreq1}")
-    print("- stats for hand2: ")
-    print(f"    highestFreq={highestFreq2}")
-    print(f"    numJokers={numJokers2}")
-    print(f"    aidedHighestFreq={aidedHighestFreq2}")
-    '''
-    # first comparison factor: total frequency with jokers
-    if (aidedHighestFreq1 != aidedHighestFreq2):
-        return (aidedHighestFreq1 - aidedHighestFreq2) * 1000
+    """ Compares the two hands and gives an integer as result:
+        - if hand1 is more valuable than hand2, it returns a positive score
+        - if hand1 is less valuable than hand2, it returns a negative score
+        - if both hands are the same, it returns zero
+    """
+    # compare the pattern scores between the two hands, where the 'J's act as jokers
+    patternScore1 = patternScore(hand1)
+    patternScore2 = patternScore(hand2)
+    
+    # first comparison factor: the patterns
+    if (patternScore1 != patternScore2):
+        return (patternScore1 - patternScore2) * 1000
     else:
         # second comparison factor: the values in hand, from left to right
         for i in range(len(hand1)):
@@ -161,13 +130,6 @@ def compareHands(hand1, hand2):
     
     # in case we reach here, the hands are exactly the same
     return 0
-"""
-'''
-hand1 = 'KKJKK'
-hand2 = 'JJJ8J'
-
-print(f"Comparing hands '{hand1}' and '{hand2}' returns: {compareHands(hand1, hand2)}")
-'''
 
 with open(INPUT_FILE, 'r') as f:
     lines = [l.strip() for l in f.readlines()]
@@ -176,12 +138,10 @@ with open(INPUT_FILE, 'r') as f:
         data[i][1] = int(data[i][1])
     
     # sort based on their strength
-    data.sort(key=(lambda entry: handScore(entry[0])))
-    # USING a compare function:
-    #data.sort(key=cmp_to_key(lambda item1, item2: compareHands(item1[0], item2[0])))
-
-    #pp = PrettyPrinter()
-    #pp.pprint([x[0] for x in data])
+    # ALTERNATIVE 1: give an individual score to each entry
+    sortedData1 = sorted(data, key=(lambda entry: handScore(entry[0])))
+    # ALTERNATIVE 2: use a compare function
+    sortedData2 = sorted(data, key=cmp_to_key(lambda item1, item2: compareHands(item1[0], item2[0])))
     
     # then return the winnings by multiplying the ranks (indices + 1) times the bid
     totalWinnings = 0
