@@ -1,11 +1,5 @@
 
-from math import gcd
-
-def lcm(n1, n2):
-    """ Computes the least common multiple of n1 and n2
-        Credits: https://stackoverflow.com/a/51716959
-    """
-    return abs(n1*n2) // gcd(n1, n2)
+from math import lcm
 
 def computeNumStepsToFinalStateV1(startingStates, moves, transitions):
     """ Computes the number of steps needed to reach a final state for each of the starting states individually.
