@@ -5,7 +5,7 @@ from operator import and_
 INPUT_FILE = "input.txt"
 
 def findNextNumInSeq(sequence):
-    """ Uses the method described in the problem to extrapolate the next number
+    """ Uses the method described in the problem to extrapolate the next number in the sequence
     """
     if (len(sequence) == 0):
         raise ValueError("The sequence needs to have at least one item!")
