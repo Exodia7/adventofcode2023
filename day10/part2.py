@@ -1,13 +1,17 @@
 
-import copy
-
-def findNextTiles(currentTile, allTiles):
+def findConnectedTiles(currentTile, allTiles):
+    """ Finds and returns the adjacent tiles to which the tile
+        at location currentTile is connected to.
+        e.g. 
+        in the case of "-", it's the tiles immediately 
+        on its left and right
+    """
     # extract X and Y
     currX = currentTile[0]
     currY = currentTile[1]
     # initialize the list with the two resulting tiles
     nextTiles = [(0, 0), (0, 0)]
-    
+    # and set it to the right values according to the symbol
     match allTiles[currY][currX]:
         case "|":
             nextTiles[0] = (currX  , currY-1)   # up tile
@@ -36,7 +40,7 @@ def findNextTiles(currentTile, allTiles):
             
             # and for each such tile, check if they point to this one
             for x, y in allSurroundingTiles:
-                nextTilesFromSurrounding = findNextTiles((x, y), allTiles)
+                nextTilesFromSurrounding = findConnectedTiles((x, y), allTiles)
                 if (len(nextTilesFromSurrounding) > 0 and currentTile in nextTilesFromSurrounding):
                         nextTiles.append((x, y))
             
@@ -58,7 +62,7 @@ def findPipeSymbolForStart(startTile, allTiles):
     startX, startY = startTile
     
     # get the adjacent connected tiles of S
-    connectedTiles = findNextTiles(startTile, allTiles)
+    connectedTiles = findConnectedTiles(startTile, allTiles)
     # check which tiles these are from up/down/left/right
     upConnected    = (startX, startY-1) in connectedTiles
     downConnected  = (startX, startY+1) in connectedTiles
@@ -109,6 +113,8 @@ def printAllTiles(allTiles):
             print(allTiles[y][x], end='')
         print()
 
+
+
 INPUT_FILE = "input.txt"
 
 with open(INPUT_FILE, 'r') as f:
@@ -125,9 +131,9 @@ with open(INPUT_FILE, 'r') as f:
             break
         else:
             yS += 1
-    # 2) create a map denoting all parts of the loop
-    loopTiles = {(xS, yS): findNextTiles((xS, yS), allTiles)}
-    toExplore = copy.deepcopy(loopTiles[(xS, yS)])
+    # 2) create a map with only the loop itself
+    loopTiles = [(xS, yS)]
+    toExplore = findConnectedTiles((xS, yS), allTiles)
     # 2.1) reuse the breadth-first search of the tiles
     while (len(toExplore) > 0):
         curr = toExplore.pop(0)
@@ -135,27 +141,24 @@ with open(INPUT_FILE, 'r') as f:
             # once we encounter a tile we've already seen, we have completed the loop
             break
         else:
-            # and add the next tile (the one in the direction we are going in, not the one we come from) to the list that we still need to explore
-            tile1, tile2 = findNextTiles(curr, allTiles)
-            tileWeGoTo = tile1
-            tileWeComeFrom = tile2
-            if (tile1 in loopTiles.keys()):
-                tileWeGoTo = tile2
-                tileWeComeFrom = tile1
-            # add the tile we go to to the ones still to explore
-            toExplore.append(tileWeGoTo)
+            # add the current tile in the tiles that are part of the loop
+            loopTiles.append(curr)
             
-            # and add the current tile in the tiles that are part of the loop
-            loopTiles[curr] = [tileWeGoTo, tileWeComeFrom]
-            # NOTE: this way, we can only follow loopTiles[key][0] for traversing the loop one way, and loopTiles[key][1] goes the other way
+            # and add the next tile (the one in the direction we are going in, not the one we come from) to the list that we still need to explore
+            tile1, tile2 = findConnectedTiles(curr, allTiles)
+            if tile1 in loopTiles:
+                toExplore.append(tile2)
+            else:
+                toExplore.append(tile1)
+    
     # 2.2) reduce the tiles to only the loop and everything else is ground
-    transformedTiles = [["." if (x, y) not in loopTiles.keys() else allTiles[y][x] for x in range(len(allTiles[y]))] for y in range(len(allTiles))]
+    transformedTiles = [["." for x in range(len(allTiles[y]))] for y in range(len(allTiles))]
+    for x, y in loopTiles:
+        transformedTiles[y][x] = allTiles[y][x]
     # 2.3) replace the "S" by an actual pipe symbol
     transformedTiles[yS][xS] = findPipeSymbolForStart((xS, yS), transformedTiles)
     
-    
-    
-    
+    # 3) go through all tiles and extract only the internal tiles
     tilesInside = []
     # NOTE: we know that the first and last row are outside
     for y in range(1, len(transformedTiles)-1):
@@ -168,7 +171,7 @@ with open(INPUT_FILE, 'r') as f:
                 isInside = not isInside
             
             elif transformedTiles[y][x] in ["F", "L"]:
-                # hit a corner
+                # we hit a corner, so we need to see how the line ends to see if we switched side or not
                 sameSideIsOnSide = "left"
                 if transformedTiles[y][x] == "L":
                     sameSideIsOnSide = "right"
@@ -193,5 +196,6 @@ with open(INPUT_FILE, 'r') as f:
             # go to next item
             x += 1
     
+    # 4) give the number of tiles we found inside
     print(f"There are {len(tilesInside)} tiles enclosed by the loop")
     # ANSWER: 453
