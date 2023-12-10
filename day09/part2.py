@@ -35,4 +35,4 @@ with open(INPUT_FILE, 'r') as f:
     # compute the sum and print the result
     result = sum(nextNumbers)
     print(f"The sum of the extrapolated previous values in each sequence is: {result}")
-    # ANSWER: 
+    # ANSWER: 1091
