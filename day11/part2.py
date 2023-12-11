@@ -3,6 +3,7 @@ INPUT_FILE = "input.txt"
 SPACE_SYMBOL = "."
 GALAXY_SYMBOL = "#"
 SIZE_EMPTY_LINES = 1000000  # 1 million
+# NOTE: if SIZE_EMPTY_LINES is set to 2, part2.py will do exactly the same computation as part1.py, i.e. solve part 1 of the challenge
 
 def manhattanDistance(location1: (int), location2: (int)) -> int:
     """ Computes the Manhattan distance between location1 and location2.
