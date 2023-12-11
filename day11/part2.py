@@ -51,14 +51,6 @@ def countNumEmptyRowsAndColsCrossed(location1: (int), location2: (int), emptyRow
         if x in emptyCols:
             count += 1
     
-    # finally, add 1 if both x1 and y1 are empty 
-    # and add 1 if both x2 and y2 are empty
-    # (since in both cases, we can avoid one of the two, but not both)
-    if (x1 in emptyCols and y1 in emptyRows):
-        count += 1
-    if (x2 in emptyCols and y2 in emptyRows):
-        count += 1
-    
     return count
 
 
