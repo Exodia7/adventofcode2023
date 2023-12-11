@@ -4,55 +4,6 @@ SPACE_SYMBOL = "."
 GALAXY_SYMBOL = "#"
 SIZE_EMPTY_LINES = 1000000  # 1 million
 
-def duplicateEmptyRows(data: [[str]]) -> [[str]]:
-    """ Creates a new map based on 'data'.
-        Every row with only space will be duplicated.
-    """
-    # copy the input data
-    expandedData = [[data[y][x] for x in range(len(data[y]))] for y in range(len(data))] 
-    # iterate over the rows
-    y = 0
-    while (y < len(expandedData)):
-        
-        
-        # and add a new row at the same spot only if the previous one was empty
-        if emptyRow:
-            expandedData.insert(y, [SPACE_SYMBOL for x in range(len(expandedData[y]))])
-            y += 2  # skip the row which we just added
-        else:
-            y += 1
-    
-    return expandedData
-
-def duplicateEmptyCols(data: [[str]]) -> [[str]]:
-    """ Creates a new map based on 'data'.
-        Every column with only space will be duplicated.
-    """
-    # copy the input data
-    expandedData = [[data[y][x] for x in range(len(data[y]))] for y in range(len(data))]
-    # iterate over the columns
-    x = 0
-    while (x < len(expandedData[0])):
-        # check if the column is empty
-        emptyCol = True
-        y = 0
-        while (emptyCol and y < len(expandedData)):
-            if expandedData[y][x] != SPACE_SYMBOL:
-                emptyCol = False
-            y += 1
-        # one-liner alternative:
-        #emptyCol = all([expandedData[y][x] == SPACE_SYMBOL for y in range(len(expandedData))])
-        
-        # and add a new column at the same spot only if the previous one was empty
-        if emptyCol:
-            for y in range(len(expandedData)):
-                expandedData[y].insert(x, ".")
-            x += 2  # skip the column which we just added
-        else:
-            x += 1
-    
-    return expandedData
-
 def manhattanDistance(location1: (int), location2: (int)) -> int:
     """ Computes the Manhattan distance between location1 and location2.
         Manhattan distance is defined by:
@@ -108,6 +59,7 @@ def countNumEmptyRowsAndColsCrossed(location1: (int), location2: (int), emptyRow
         count += 1
     
     return count
+
 
 
 with open(INPUT_FILE, 'r') as f:
@@ -176,8 +128,8 @@ with open(INPUT_FILE, 'r') as f:
         actualDist = numEmptySpaces * SIZE_EMPTY_LINES + numNormalSpaces
         # add that to the total
         totalDist += actualDist
-        
+    
     
     # 6) show the result
     print(f"The sum of all the distances between galaxies (with empty rows and columns counting for {SIZE_EMPTY_LINES}) is {totalDist}")
-    # ANSWER: 
+    # ANSWER: 447073334102
