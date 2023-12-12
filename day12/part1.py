@@ -32,6 +32,10 @@ def countContiguousDamaged(info: str) -> [int]:
 
 
 def countArrangementsBruteForce(info: str, requirement: [int]) -> int:
+    """ Count the number of possible arrangements of the given line 'info'.
+        Arrangements are obtained by filling in the unknown spaces with actual values, 
+        in a way respecting the requirements of contiguous groups given in 'requirement'
+    """
     if (info.count(UNKNOWN) == 0):
         # there's no unknown in the list
         # in this case, we either have 0 or 1 possible arrangements depending on 
