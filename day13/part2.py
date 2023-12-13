@@ -1,6 +1,4 @@
 
-from pprint import PrettyPrinter
-
 INPUT_FILE = "input.txt"
 
 def listsAreTheSameExceptForOneChar(lst1 : [str], lst2: [str]) -> bool:

@@ -1,6 +1,4 @@
 
-from pprint import PrettyPrinter
-
 INPUT_FILE = "input.txt"
 
 def listsAreTheSame(lst1 : [str], lst2: [str]) -> bool:
@@ -17,10 +15,6 @@ def listsAreTheSame(lst1 : [str], lst2: [str]) -> bool:
 
 
 with open(INPUT_FILE, 'r') as f:
-    pp = PrettyPrinter()
-    DEBUG = False
-
-
     # 1) parse the input
     lines = [l.strip() for l in f.readlines()]
     # --> separate each map into its own list
@@ -37,16 +31,9 @@ with open(INPUT_FILE, 'r') as f:
     if (len(nextMap) != 0):
         maps.append(nextMap)
     
-    if (DEBUG): 
-        print("Parsed the maps")
-    
     # 2) for each map, check if it is reflected vertically or horizontally
     total = 0
     for mapIdx in range(len(maps)):
-        if (DEBUG):
-            print(f"At map #{mapIdx}/{len(maps)}")
-            pp.pprint(maps[mapIdx])
-        
         # try each possible horizontal separation
         foundHorizontalReflection = False
         row = 1
@@ -57,11 +44,6 @@ with open(INPUT_FILE, 'r') as f:
             
             if listsAreTheSame(rowsAbove, rowsBelow):
                 # the map has a horizontal split
-                if (DEBUG):
-                    print(f"Found horizontal split at index {row}, with \nrowsAbove = ")
-                    pp.pprint(rowsAbove)
-                    print("and rowsBelow = ")
-                    pp.pprint(rowsBelow)
                 total += 100 * len(rowsAbove)
                 foundHorizontalReflection = True
             
@@ -78,12 +60,6 @@ with open(INPUT_FILE, 'r') as f:
                 
                 if listsAreTheSame(colsLeft, colsRight):
                     # the map has a vertical split here
-                    if (DEBUG):
-                        print(f"Found vertical split at index {col}, with \ncolsLeft = ")
-                        pp.pprint(colsLeft)
-                        print("and colsRight = ")
-                        pp.pprint(colsRight)
-                    
                     total += len(colsLeft)
                     foundVerticalReflection = True
                 
