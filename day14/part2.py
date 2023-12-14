@@ -154,16 +154,8 @@ def strToMap(data: str) -> [[str]]:
 
 
 with open(INPUT_FILE, 'r') as f:
-    DEBUG = False
-
     # parse the input data
     originalData = [[char for char in l.strip()] for l in f.readlines()]
-    
-    if (DEBUG):
-        print("ORIGINAL MAP:")
-        printMap(originalData)
-        totalLoadNorthSide = computeLoadOnNorth(originalData)
-        print(f"\nLoad on north beam = {totalLoadNorthSide}")
     
     # keep track of the resulting maps after each cycle
     dataIterations = {mapToStr(originalData): 0}
@@ -187,14 +179,8 @@ with open(INPUT_FILE, 'r') as f:
             remainingNumCycles = NUM_CYCLES - numCyclesLoopStart
             # skip all the loops
             remainingNumCycles = remainingNumCycles % loopLength
-            # and add back the few transitions before the loop to get the correct number of transitions of the map we are looking for
+            # and add back the number of transitions before the loop to get the correct number of transitions of the one we are looking for
             remainingNumCycles += numCyclesLoopStart
-            
-            if (DEBUG):
-                print(f"\n-------------------------\nFOUND A CYCLE!!! with map after {dataIterations[mapToStr(currentData)]} rotations")
-                printMap(currentData)
-                
-                print(f"\nLoop has length {loopLength}, hence we just need to retrieve element after {remainingNumCycles}")
             
             # find the right element
             for element, cycleNum in dataIterations.items():
@@ -204,21 +190,11 @@ with open(INPUT_FILE, 'r') as f:
                     # stop searching through the cycle elements
                     break
             
-            if (DEBUG):
-                print("RESULT MAP = ")
-                printMap(currentData)
-            
             # and exit the loop
             break
         else:
             # make a copy of the new map and save in dataIterations, along with the number of rotation cycles that were performed to reach this map configuration
             dataIterations[mapToStr(currentData)] = i+1
-            
-            if (DEBUG):
-                print(f"\n-------------------------\nFOUND NEW MAP AFTER {i+1} rotations")
-                printMap(currentData)
-                totalLoadNorthSide = computeLoadOnNorth(currentData)
-                print(f"\nLoad on north side = {totalLoadNorthSide}")
     
     # compute the load on the final map
     totalLoadNorthSide = computeLoadOnNorth(currentData)
