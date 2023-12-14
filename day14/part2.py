@@ -1,6 +1,5 @@
 
 import copy
-from tqdm import tqdm
 
 INPUT_FILE = "input.txt"
 ROUND_ROCK = "O"
