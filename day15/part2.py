@@ -24,7 +24,29 @@ def HASH(s : str) -> int:
         '''
     return currentVal
 
-def findEntryWithLabel(entries: list[tuple[Union[str, int]]], label: str) -> int:
+def extractInfoFromStep(step: str):
+    """ Takes in a step and parses it.
+        Returns a tuple containing multiple elements:
+        - at index 0: the label of the lens
+        - at index 1: the operation character
+        if the operation character is the operator corresponding to the ADD operation,
+        there will be an extra item at index 2, representing the focal length of the lens
+    """
+    i = 0
+    while (i < len(step) and step[i] not in OPERATION_CHARS):
+        # increase i up to the operation character
+        i += 1
+    # split the info up
+    label = step[:i]
+    operationChar = step[i]
+    remainder = ""
+    if (operationChar == ADD_OP):
+        remainder = int(step[i+1:])
+    
+    # and return all the pieces
+    return (label, operationChar, remainder)
+
+def findEntryWithLabel(entries: list[tuple[Union[str, int]]], label: str) -> (bool, int):
     """ Given a list of entries in a given box,
         search for the entry with the given label.
         
@@ -33,7 +55,7 @@ def findEntryWithLabel(entries: list[tuple[Union[str, int]]], label: str) -> int
     """
     foundLabel = False
     i = 0
-    while (i < len(entries) and not foundSameLabel):
+    while (i < len(entries) and not foundLabel):
         if (entries[i][0] == label):
             foundLabel = True
         else:
@@ -42,7 +64,7 @@ def findEntryWithLabel(entries: list[tuple[Union[str, int]]], label: str) -> int
     if not foundLabel:  # to return -1 if it was not found
         i = -1
     
-    return i
+    return foundLabel, i
 
 def HASHMAPAddOperation(label : str, focalLength : int, hashmap: dict[int, list[tuple[Union[str, int]]]]):
     """ Performs the ADD operation on the hashmap
@@ -53,17 +75,11 @@ def HASHMAPAddOperation(label : str, focalLength : int, hashmap: dict[int, list[
         # the box is not empty
         # --> check if there is already an entry with the same label
         entries = hashmap[hashValue]
-        foundSameLabel = False
-        i = 0
-        while (i < len(entries) and not foundSameLabel):
-            if (entries[i][0] == label):
-                foundSameLabel = True
-            else:
-                i += 1
+        foundSameLabel, entryIdx = findEntryWithLabel(entries, label)
         
         if foundSameLabel:
             # replace the entry with the same label
-            entries[i] = (label, focalLength)
+            entries[entryIdx] = (label, focalLength)
         else:
             # add a new entry to the end
             entries.append((label, focalLength))
@@ -82,17 +98,11 @@ def HASHMAPRemoveOperation(label : str, hashmap: dict[int, list[tuple[Union[str,
     if HashValue in hashmap:
         # then, check if the box contains an item with this label
         entries = hashmap[HashValue]
-        foundSameLabel = False
-        i = 0
-        while (i < len(entries) and not foundSameLabel):
-            if (entries[i][0] == label):
-                foundSameLabel = True
-            else:
-                i += 1
+        foundSameLabel, entryIdx = findEntryWithLabel(entries, label)
         
         if foundSameLabel:
             # remove the entry with the label
-            del entries[i]
+            del entries[entryIdx]
 
 def HASHMAP(step: str, hashmap: dict[int, list[tuple[Union[str, int]]]]):
     """ Holiday ASCII String Helper Manual Arrangement Procedure
@@ -106,14 +116,7 @@ def HASHMAP(step: str, hashmap: dict[int, list[tuple[Union[str, int]]]]):
                     - index 1 = focal length of the lens
     """
     # 1) extract the info from the step
-    i = 0
-    while (i < len(step) and step[i] not in OPERATION_CHARS):
-        # increase i up to the operation character
-        i += 1
-    # split the info up
-    label = step[:i]
-    operationChar = step[i]
-    remainder = step[i+1:]
+    label, operationChar, remainder = extractInfoFromStep(step)
     
     # 2) perform the correct operation
     match operationChar:
