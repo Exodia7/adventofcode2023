@@ -3,10 +3,12 @@ from typing import Union
 import copy
 
 INPUT_FILE = "test.txt"
-DEBUG = False
+DEBUG = True
 
 def addNewColumnsToMap(map: list[list[bool]], index: int, numNewColumns: int) -> list[list[bool]]:
     """ Adds the specified number of new columns at the specified index in the map """
+    if (DEBUG): print(f"Adding {numNewColumns} columns at index {index}")
+    
     defaultValue = False
     newMap = []
     for y in range(len(map)):
@@ -25,6 +27,7 @@ def addNewColumnsToMap(map: list[list[bool]], index: int, numNewColumns: int) ->
 
 def addNewRowsToMap(map: list[list[bool]], index: int, numNewRows: int) -> list[list[bool]]:
     """ Adds the specified number of new rows at the specified index in the map """
+    if (DEBUG): print(f"Adding {numNewRows} rows at index {index}")
     for i in range(numNewRows):
         map.insert(index, [False for j in range(len(map[0]))])
     return map
@@ -43,50 +46,29 @@ def performMove(pos: tuple[int], direction: str, numSteps: int) -> tuple[int]:
             y -= numSteps
     return (x, y)
 
-def createMapWithBorderOf(data: list[list[Union[str, int]]]) -> list[list[bool]]:
-    """ Given the instructions of moves, creates a map representing it, with tiles on the path having the value True, and all other tiles being False. """
-    # initialize the map with just (0, 0)
-    m = [[False]]
-    currPos = (0, 0)
-    startX = endX = startY = endY = 0
-    for i in range(len(data)):
-        # extract the next move to perform
-        direction = data[i][0]
-        numSteps = data[i][1]
+def createMapWithBorderOf(edges: list[tuple[int]]) -> list[list[bool]]:
+    """ Given the edges, creates a map representing it, with tiles on the path having the value True, and all other tiles being False. """
+    # find the dimensions in X and Y
+    maxX, maxY = edges[0]
+    for i in range(1, len(edges)):
+        currX, currY = edges[i]
+        if (maxX < currX):
+            maxX = currX
+        if (maxY < currY):
+            maxY = currY
+    # initialize the map with just False values
+    m = [[False for x in range(maxX+1)] for y in range(maxY+1)]
+    currPos = edges[0]
+    for i in range(1, len(edges)):
+        # get the next edge
+        nextPos = edges[i]
         
-        # compute the next position
-        nextPos = performMove(currPos, direction, numSteps)
-        nextX, nextY = nextPos
-        
-        if (DEBUG): print(f"Size of map: {len(m)}x{len(m[0])}, startX={startX}, endX={endX}, startY={startY}, endY={endY}")
-        
-        # then update the map according to this
-        if (nextX < startX or endX < nextX):
-            # add new columns
-            numberColsToAdd = nextX-endX
-            addColsIndex = 0
-            startX = min(nextX, startX)
-            if (endX < nextX):
-                addColsIndex = endX+1
-                endX = nextX
-            m = addNewColumnsToMap(m, addColsIndex, numberColsToAdd)
-        else:
-            # add new rows
-            numberRowsToAdd = nextY-endY
-            addRowsIndex = 0
-            startX = min(nextY, startY)
-            if (endY < nextY):
-                addRowsIndex = endY+1
-                endY = nextY
-            m = addNewRowsToMap(m, addRowsIndex, numberRowsToAdd)
-        
-        if (DEBUG): print(f"Size of map: {len(m)}x{len(m[0])}, startX={startX}, endX={endX}, startY={startY}, endY={endY}")
-        
-        # finally, mark the parts that are part of the border
+        # set all spaces between the current and the next to the value True
         currX, currY = currPos
-        for y in range(min(nextY, currY), max(nextY, currY)+1):
-            for x in range(min(nextX, currX), max(nextX, currX)+1):
-                m[y-startY][x-startX] = True
+        nextX, nextY = nextPos
+        for y in range(min(currY, nextY), max(currY, nextY)+1):
+            for x in range(min(currX, nextX), max(currX, nextX)+1):
+                m[y][x] = True
         
         # update currPos
         currPos = nextPos
@@ -131,7 +113,27 @@ def computeSpaceOccupiedBy(bordersMap: list[list[bool]]) -> int:
     
     return totalSize
 
-
+def generateEdgesFromMoves(data: list[list[Union[str, int]]]) -> list[tuple[int]]:
+    """ Based on the given moves to perform, returns a list of the positions of the edges """
+    currPos = (0, 0)
+    edges = [(0, 0)]
+    for i in range(len(data)):
+        # extract the next move to perform
+        direction = data[i][0]
+        numSteps = data[i][1]
+        # perform it to get the destination position
+        nextPos = performMove(currPos, direction, numSteps)
+        
+        # DEBUG
+        #if (DEBUG): print(f"Moving from {currPos} to {nextPos}")
+        
+        # add the new border to the list
+        edges.append(nextPos)
+        
+        # finally, update the current position
+        currPos = nextPos
+    
+    return edges
     
 
 with open(INPUT_FILE, 'r') as f:
@@ -145,20 +147,49 @@ with open(INPUT_FILE, 'r') as f:
     
     # DEBUG
     if (DEBUG):
+        print("ORIGINAL DATA:")
         print(data)
         print("\n----------------------\n")
     
-    # 2) create the border
-    borders = createMapWithBorderOf(data)
+    # 2) get all edge points
+    edges = generateEdgesFromMoves(data)
+    # increase all edges such that all of them become positive
+    # --> first get lowest X and lowest Y, then increase all by that amount
+    minX, minY = edges[0]
+    for i in range(1, len(edges)):
+        currX, currY = edges[i]
+        if (currX < minX):
+            minX = currX
+        if (currY < minY):
+            minY = currY
+    # then add enough so the coordinates start at 0 and only go positive
+    incrementX = -minX
+    incrementY = -minY
+    for i in range(len(edges)):
+        currX, currY = edges[i]
+        edges[i] = (currX + incrementX, currY + incrementY)
     
     # DEBUG
-    #if (DEBUG):
-    printBorders(borders)
-    print("\n----------------------\n")
+    if (DEBUG):
+        print("EDGES:")
+        print(edges)
+        print("\n----------------------\n")
+    
+    # 3) create the map with the border
+    borders = createMapWithBorderOf(edges)
+    
+    # DEBUG
+    if (DEBUG):
+        print(f"Size of map: {len(borders)}x{len(borders[0])}")
+        print(f"BORDERS MAP:")
+        printBorders(borders)
+        print("\n----------------------\n")
     
     # 3) compute how many tiles are on the border and inside
     terrainSize = computeSpaceOccupiedBy(borders)
     
     # 4) return the result
     print(f"Exactly {terrainSize} cubic meters of lava fit in the lagoon")
-    # ANSWER: 
+    # TRIES: 295049 (too high),
+    #       104152 (too high)
+    #       49372 (incorrect)
