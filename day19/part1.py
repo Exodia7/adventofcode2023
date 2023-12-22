@@ -1,10 +1,13 @@
 
 from typing import Callable, Union
+from pprint import PrettyPrinter
 
 INPUT_FILE = "input.txt"
 OPERATORS = [">", "<"]
 
-def parseCondition(strCondition: str) -> Callable:
+# Credits to https://stackoverflow.com/a/39624147 on how type hints for functions work
+
+def parseCondition(strCondition: str) -> Callable[[dict[str, int]], bool]:
     """ Given the string representing a condition, return a function that can be called and expresses that condition.
     For example, for strCondition = "m>2090",
         it would return a function which checks whether the "m" value of the input argument is above 2090
@@ -24,7 +27,7 @@ def parseCondition(strCondition: str) -> Callable:
         case "<":
             return lambda item: item[var] < value
 
-def parseRules(strRules: str) -> tuple[Union[Callable, str]]:
+def parseRules(strRules: str) -> tuple[Union[Callable[[dict[str, int]], bool], str]]:
     """ Parse the given rule set to a list of tuples.
         Each tuple contains at:
         - index 0: a function to check if the rule is applicable
@@ -84,7 +87,7 @@ def parsePart(strPart: str) -> dict[str, int]:
     
     return part
 
-def parseData(data: list[str]) -> tuple[Union[dict[str, list[tuple[Union[Callable, str]]]], dict[str, int]]]:
+def parseData(data: list[str]) -> tuple[Union[dict[str, list[tuple[Union[Callable[[dict[str, int]], bool], str]]]], dict[str, int]]]:
     """ Given the input data, parse and return the transition rules and parts.
         The transition rules will be in a format such as the example below:
             ex{x>10:one,m<20:two,a>30:R,A}
@@ -136,7 +139,7 @@ def parseData(data: list[str]) -> tuple[Union[dict[str, list[tuple[Union[Callabl
     # 4) return the result
     return (transitions, parts)
 
-def performStateTransition(state: str, part: dict[str, int], transitions: dict[Callable, str]) -> str:
+def performStateTransition(state: str, part: dict[str, int], transitions: dict[Callable[[dict[str, int]], bool], str]) -> str:
     """ Perform one state transition from the given state with the given part """
     # 1) look up the transition rules for this state
     stateTransitions = transitions[state]
