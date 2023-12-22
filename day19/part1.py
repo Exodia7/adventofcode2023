@@ -27,7 +27,7 @@ def parseCondition(strCondition: str) -> Callable[[dict[str, int]], bool]:
         case "<":
             return lambda item: item[var] < value
 
-def parseRules(strRules: str) -> tuple[Union[Callable[[dict[str, int]], bool], str]]:
+def parseRules(strRules: str) -> list[tuple[Union[Callable[[dict[str, int]], bool], str]]]:
     """ Parse the given rule set to a list of tuples.
         Each tuple contains at:
         - index 0: a function to check if the rule is applicable
@@ -139,7 +139,7 @@ def parseData(data: list[str]) -> tuple[Union[dict[str, list[tuple[Union[Callabl
     # 4) return the result
     return (transitions, parts)
 
-def performStateTransition(state: str, part: dict[str, int], transitions: dict[Callable[[dict[str, int]], bool], str]) -> str:
+def performStateTransition(state: str, part: dict[str, int], transitions: dict[str, list[tuple[Union[Callable[[dict[str, int]], bool], str]]]]) -> str:
     """ Perform one state transition from the given state with the given part """
     # 1) look up the transition rules for this state
     stateTransitions = transitions[state]
