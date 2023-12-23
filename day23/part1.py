@@ -5,6 +5,7 @@ INPUT_FILE = "input.txt"
 PATH = "."
 FOREST = "#"
 SLOPES = ["^", ">", "v", "<"]
+VERBOSE = True
 
 def computePossibleNextPositions(map: list[str], currPos: tuple[int]) -> list[tuple[int]]:
     """ Find all neighboring positions we can move to """
@@ -42,12 +43,18 @@ def computePossibleNextPositions(map: list[str], currPos: tuple[int]) -> list[tu
 
 def findLongestPath(map: list[str], startPos: tuple[int], endPos: tuple[int], pathSoFar: list[tuple[int]]):
     """ Finds the longest path from the starting position to the end position while respecting the conditions """
+    maxPathLength = 0
     longestPath = []
     pathsToExploreFurther = [[startPos]]
     while len(pathsToExploreFurther) > 0:
         # 1) take the first path
         currPath = pathsToExploreFurther.pop(0)
         lastPos = currPath[-1]
+        
+        # VERBOSE: print when we reach a new path length
+        if (VERBOSE and len(currPath) >= maxPathLength+250):
+            maxPathLength = len(currPath)
+            print(f"Reached path length of {maxPathLength}")
         
         # 2) check if it's done, and if so, if it's longer than previous max
         if (lastPos == endPos):
@@ -99,6 +106,9 @@ with open(INPUT_FILE, 'r') as f:
     
     # 4) find longest path from start to end
     longestPath = findLongestPath(data, startPos, endPos, [])
+    
+    # leave an empty space
+    if VERBOSE: print()
     
     # 5) give the length of that path
     print(f"The longest path has exactly {len(longestPath)-1} steps")
