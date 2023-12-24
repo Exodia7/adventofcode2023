@@ -1,12 +1,14 @@
 
 import copy
 from functools import lru_cache
+from pprint import PrettyPrinter
+from typing import Union
 
 INPUT_FILE = "input.txt"
 PATH = "."
 FOREST = "#"
 SLOPES = ["^", ">", "v", "<"]
-VERBOSE = True
+DEBUG = True
 
 @lru_cache
 def computePossibleNextPositions(map: tuple[str], currPos: tuple[int]) -> list[tuple[int]]:
@@ -15,6 +17,8 @@ def computePossibleNextPositions(map: tuple[str], currPos: tuple[int]) -> list[t
     currSymbol = map[currY][currX]
     
     if currSymbol in SLOPES:
+        print("SLOPE")
+        
         # then we can only move downhill (in the direction of the slope)
         possiblePosition = None
         ''' # GOING IN THE OPPOSITE DIRECTION COMPARED TO THE SLOPE DIRECTION
@@ -50,7 +54,7 @@ def computePossibleNextPositions(map: tuple[str], currPos: tuple[int]) -> list[t
         # then we can move in each direction, assuming the tile is not forest
         possiblePositions = []
         if (currX > 0 and map[currY][currX-1] != FOREST):   # and (currX-1, currY) not in visited):
-                possiblePositions.append((currX-1, currY))
+            possiblePositions.append((currX-1, currY))
         if (currX < len(map[currY])-1 and map[currY][currX+1] != FOREST):   # and (currX+1, currY) not in visited):
             possiblePositions.append((currX+1, currY))
         if (currY > 0 and map[currY-1][currX]!= FOREST):    # and (currX, currY-1) not in visited):
@@ -76,6 +80,7 @@ def computePossibleNextPositions(map: tuple[str], currPos: tuple[int]) -> list[t
         # return the valid possible positions
         return possiblePositions
 
+'''
 def findLongestPath(map: list[str], startPos: tuple[int], endPos: tuple[int]):          #, neighborsCache: dict[tuple[int], list[tuple[int]]], pathSoFar: list[tuple[int]]):
     """ Finds the longest path from the starting position to the end position while respecting the conditions """
     maxPathLength = 0
@@ -134,22 +139,115 @@ def precomputeNeighborPositions(map: list[str]) -> dict[tuple[int], list[tuple[i
                 neighborsCache[pos] = computePossibleNextPositions(tuple(map), pos)
     
     return neighborsCache
-                
+'''
 
+def reduceMapToCrossroads(map: list[str], startPos: tuple[int], endPos: tuple[int]) -> dict[tuple[int], list[tuple[tuple[int] | int]]]:
+    """ Reduce the given map to only the crossroad positions.
+        Returns a dictionary with as:
+        - keys = the crossroad cell
+        - value = the list of other crossroad positions that can be reached directly from there,
+                along with the distance to reach it
+    """
+    # 0) initialize some variables
+    tupleMap = tuple(map)
+    transitions = {}
+    
+    # 1) setup and start the exploration
+    toExplore = [startPos]
+    explored = []
+    while len(toExplore) > 0:
+        # get the current node and its neighbors
+        currPos = toExplore.pop(0)
+        neighbors = computePossibleNextPositions(tupleMap, currPos)
+        # prepare the search
+        explored.append(currPos)
+        # explore each neighbor until we find the next crossroad
+        for i in range(len(neighbors)):
+            nextPos = neighbors[i]
+            distFromCurrToNextPos = 1
+            nextPosNeighbors = computePossibleNextPositions(tupleMap, nextPos)
+            
+            if (nextPos not in explored):
+                # search either the ending position or a crossroad
+                while nextPos != endPos and len(nextPosNeighbors) == 2:   # Note: if we ever get exactly 1 neighbor, we hit a dead end, so we can stop
+                    # find the neighbor that goes forward
+                    forwardNeighbor = None
+                    if (nextPosNeighbors[0] in explored and nextPosNeighbors[1] not in explored):
+                        forwardNeighbor = nextPosNeighbors[1]
+                    elif (nextPosNeighbors[0] not in explored and nextPosNeighbors[1] in explored):
+                        forwardNeighbor = nextPosNeighbors[0]
+                    else:
+                        raise Exception("Something is wrong, either both neighbors are not yet visited or neither")
+                    
+                    # add the previous node to the nodes we visited
+                    explored.append(nextPos)
+                    # compute the neighbors with the new node as nextPos
+                    nextPos = forwardNeighbor
+                    nextPosNeighbors = computePossibleNextPositions(tupleMap, nextPos)
+                    distFromCurrToNextPos += 1
+                    
+                
+                if nextPos == endPos or len(nextPosNeighbors) > 2:
+                    # we found a new crossroad, add it to the transitions from currPos and to the nodes to explore
+                    if (currPos not in transitions.keys()):
+                        transitions[currPos] = []
+                    transitions[currPos].append((nextPos, distFromCurrToNextPos))
+                    if (nextPos not in transitions.keys()):
+                        transitions[nextPos] = []
+                    transitions[nextPos].append((currPos, distFromCurrToNextPos))
+                    
+                    toExplore.append(nextPos)
+    
+    return transitions
+
+def findLongestPathLength(crossroadMap:  dict[tuple[int], list[tuple[tuple[int] | int]]], startPos: tuple[int], endPos: tuple[int]) -> int:
+    """ Compute the length of the longest path which does not traverse parts twice """
+    maxNumVisited = 0
+    
+    toExplore = [(startPos, 0, [])]
+    # each item has:
+    # - index 0: current position
+    # - index 1: length of path
+    # - index 2: positions already visited in the path
+    longestPathLength = -1
+    while len(toExplore) > 0:
+        # get current situation
+        currPos, currPathLength, currVisited = toExplore.pop(0)
+        if (DEBUG and len(currVisited) > maxNumVisited):
+            maxNumVisited = len(currVisited)
+            print(f"\nReached {maxNumVisited} crossroads in path\n")
+        # compute possible crossroads to transition to
+        possibleNext = crossroadMap[currPos]
+        
+        # check if that position is the terminal position or not
+        if currPos == endPos:
+            # check if it's the longest
+            if currPathLength > longestPathLength:
+                longestPathLength = currPathLength
+                if (DEBUG): print(f"New longest path of length {currPathLength} with visited = \n  {currVisited}")
+        else:
+            for nextPos, nextPosDist in possibleNext:
+                if nextPos not in currVisited:
+                    # add the subpath currPos -> nextPos to the path
+                    nextVisited = copy.copy(currVisited)
+                    nextVisited.append(currPos)
+                    nextPathLength = currPathLength + nextPosDist
+                    # and add the next situation to explore
+                    toExplore.append((nextPos, nextPathLength, nextVisited))
+    
+    return longestPathLength
 
 
 
 with open(INPUT_FILE, 'r') as f:
     # 1) parse the data
     data = [l.strip() for l in f.readlines()]
-    # 1.1) transform all slopes to paths
+    # 1.1) PART 2 - transform all slopes to paths
     for i in range(len(data)):
         for SLOPE_SYMBOL in SLOPES:
             data[i] = data[i].replace(SLOPE_SYMBOL, PATH)
-    # 2) pre-compute all neighbor nodes
-    #neighborsCache = precomputeNeighborPositions(data)
     
-    # 3) find starting position
+    # 2) find starting position
     y = 0
     x = 0
     while (x < len(data[y])):
@@ -158,7 +256,7 @@ with open(INPUT_FILE, 'r') as f:
         else:
             x += 1
     startPos = (x, y)
-    # 4) find target position
+    # 3) find ending position
     y = len(data)-1
     x = 0
     while (x < len(data[y])):
@@ -168,12 +266,21 @@ with open(INPUT_FILE, 'r') as f:
             x += 1
     endPos = (x, y)
     
-    # 5) find longest path from start to end
-    longestPath = findLongestPath(data, startPos, endPos)   #neighborsCache, [])
+    # 2) reduce the whole map to a simple set of transitions, starting at the initial state.
+    #   the idea is to reduce it to only the crossroad path cells,
+    #   such as to know for each crossroad cell to which other cells it leads
+    reducedMap = reduceMapToCrossroads(data, startPos, endPos)
     
-    # leave an empty space
-    if VERBOSE: print()
+    # DEBUG
+    if (DEBUG):
+        pp = PrettyPrinter()
+        print(f"\n\nREDUCED MAP ({len(reducedMap.keys())} keys):")
+        pp.pprint(reducedMap)
+        print("\n")
     
-    # 6) give the length of that path
-    print(f"The longest path has exactly {len(longestPath)-1} steps")
-    # ANSWER: too freaking slow
+    # 3) compute which path is the longest based on this representation of the paths
+    longestPathLength = findLongestPathLength(reducedMap, startPos, endPos)
+    
+    # 4) return the result
+    print(f"\nThe longest path has {longestPathLength} steps")
+    # ANSWER: 6502
